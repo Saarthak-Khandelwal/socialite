@@ -1,6 +1,7 @@
 from random import *
 import mysql.connector as sql
 from tkinter import *
+import customtkinter
 
 def main():
     pass
@@ -10,6 +11,10 @@ SQLPASSWORD = "bihani123"
 DIMENSION = "400x600"
 BG = "#3b1a73"
 TC = "#f6a903"
+DATABASE = "socialite"
+
+def cf(root, n):
+    pass
 
 def  home_page(USERNAME):
     global RC
@@ -20,6 +25,7 @@ def  home_page(USERNAME):
     root.option_add("*Button.Background", TC)
     root.configure(bg = BG)
     #root.option_add("Background", "Yellow")
+
 
     def deliver(RC, OC = 0):
         global rootc
@@ -32,7 +38,7 @@ def  home_page(USERNAME):
         rootc.option_add("*Button.Background", TC)
         rootc.configure(bg = BG)
         rootc.title(MAIN_TITLE)
-        con = sql.connect(host = 'localhost', user = 'root', password = 'bihani123', database = 'amazon_del')
+        con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
         cur = con.cursor()
         q = f"select loca,rno,time from jobs;"
         cur.execute(q)
@@ -68,7 +74,7 @@ def  home_page(USERNAME):
         loc.insert(0,'Location to deliver')
         
         def submit():
-            con = sql.connect(host = 'localhost', user = 'root', password = 'bihani123', database = 'amazon_del')
+            con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
             cur = con.cursor()
             LOC = loc.get()
             TIME = time.get()
@@ -104,7 +110,18 @@ def reg_page():
     root.title(MAIN_TITLE)
     root.option_add("*Button.Background", TC)
     root.configure(bg = BG)
-    #root.geometry(DIMENSION)
+    root.geometry(DIMENSION)
+
+    Grid.rowconfigure(root, 0, weight = 1)
+    Grid.rowconfigure(root, 1, weight = 1)
+    Grid.rowconfigure(root, 2, weight = 1)
+    Grid.rowconfigure(root, 3, weight = 1)
+
+    Grid.columnconfigure(root, 0, weight = 1)
+    Grid.columnconfigure(root, 1, weight = 1)
+    Grid.rowconfigure(root, 2, weight = 1)
+    Grid.rowconfigure(root, 3, weight = 1)
+
 
     username = Entry(root,borderwidth=5)
     username.insert(0,'Registration Number')
@@ -127,10 +144,10 @@ def reg_page():
         USERNAME = username.get()
         PASSWORD = password.get()
 
-        con = sql.connect(host = 'localhost', user = 'root', password = 'bihani123', database = 'amazon_del')
+        con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD, database = DATABASE)
         cur = con.cursor()
 
-        pqry = f"select pass,rno from login where rno = '{USERNAME}';"
+        pqry = f"select pwd,uid,pts from user where uid = '{USERNAME}';"
         cur.execute(pqry)
         pry = cur.fetchall()
 
@@ -156,22 +173,23 @@ def reg_page():
         PASSWORD = password.get()
         MAILID = mailid.get()
 
-        con = sql.connect(host = 'localhost', user = 'root', password = 'bihani123', database = 'amazon_del')
+        con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
         cur = con.cursor()
 
-        pqry = f"select pass from login where rno = '{USERNAME}';"
+        pqry = f"select PWD from user where rno = '{USERNAME}';"
         cur.execute(pqry)
         pry = cur.fetchall()
 
-        print (pry)
         if pry :
             if PASSWORD == pry[0][0]:
                 gate()
             else:
                 message.delete('1.0',END)
-                message.insert(END,'Rno already exists')
+                message.insert(END,'Username already exists')
+        
         else:
-            q = f'insert into login (rno, pass, mailid) values("{USERNAME}","{PASSWORD}", "{MAILID}");'
+            PNO = 1
+            q = f'insert into user (uid, pwd, pno) values("{USERNAME}","{PASSWORD}", "{MAILID}", "{PNO}");'
             cur.execute(q)
             con.commit()
             message.delete('1.0',END)
@@ -181,13 +199,13 @@ def reg_page():
     clear = Button(root,width=55,text='Clear',command=clearing)
     register = Button(root, width = 55, text = 'Register', command = registeration)
 
-    username.grid(row=0,column=0)
-    password.grid(row=0,column=1)
-    mailid.grid(row=0, column=2 )
+    username.grid(row=0,column=0,sticky="nsew")
+    password.grid(row=0,column=1,sticky="nsew")
+    mailid.grid(row=0, column=2 ,sticky="nsew")
     login.grid(row=3,column=0,columnspan=3)
     clear.grid(row=4,column=0,columnspan=3)
     register.grid(row=2,column=0,columnspan=3)
-    message.grid(row=1,column = 0,columnspan=3)
+    message.grid(row=1,column = 0,columnspan=3,sticky="nsew")
         
     root.mainloop()
 
