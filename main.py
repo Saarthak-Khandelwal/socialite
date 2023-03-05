@@ -1,214 +1,299 @@
 from random import *
 import mysql.connector as sql
-from tkinter import *
-import customtkinter
+import tkinter 
+from customtkinter import *
+from time import *
+
+from moduleOwn import *
+
+
+MAIN_TITLE = "Socialite"
+SQLPASSWORD = "bihani123"
+DIMENSION = "360x640"
+BG = "#3b1a73"
+TC = "#f6a903"
+DATABASE = "socialite"
+rand_i=1
+
+set_appearance_mode("System")  # Modes: system (default), light, dark
+set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
+
+app = CTk()  # create CTk window like you do with the Tk window
+app.geometry(DIMENSION)
 
 def main():
     pass
 
-MAIN_TITLE = "Socialite"
-SQLPASSWORD = "bihani123"
-DIMENSION = "400x600"
-BG = "#3b1a73"
-TC = "#f6a903"
-DATABASE = "socialite"
-
-def cf(root, n):
-    pass
-
-def  home_page(USERNAME):
-    global RC
-    RC =1
-    root = Tk()
-    root.title(MAIN_TITLE)
-    #root.geometry(DIMENSION)
-    root.option_add("*Button.Background", TC)
-    root.configure(bg = BG)
-    #root.option_add("Background", "Yellow")
+def clearPageu():
+    for widget in app.winfo_children():
+        widget.destroy()
 
 
-    def deliver(RC, OC = 0):
-        global rootc
-        if RC:
-            root.destroy()
-            RC = 0
-        if OC:
-            rootd.destroy()
-        rootc = Tk()
-        rootc.option_add("*Button.Background", TC)
-        rootc.configure(bg = BG)
-        rootc.title(MAIN_TITLE)
-        con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
-        cur = con.cursor()
-        q = f"select loca,rno,time from jobs;"
+
+
+
+
+
+#---------------------------------------------------------------------------------------------------------------------
+# Login/ Reg Functions
+def popMsg(msg):
+    top = CTk()  
+    text = CTkLabel(master= top,
+        text=f"{msg}",
+        width=250,)
+    text.place(relx= 0.5, rely = 0.3, anchor=tkinter.CENTER)  
+    ok = CTkButton(master=top, text="OK", width = 30, command= top.destroy)
+    ok.place(relx=0.5, rely=0.6, anchor=tkinter.CENTER)
+    top.mainloop()
+
+def clearPage():
+    for widget in app.winfo_children():
+        widget.destroy()
+
+def loginFunction(username, password, mainPage ):
+    USERNAME = username.get()
+    PASSWORD = password.get()
+
+    con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD, database = DATABASE)
+    cur = con.cursor()
+
+    pqry = f"select pwd,uid,pts from user where uid = '{USERNAME}';"
+    cur.execute(pqry)
+    pry = cur.fetchall()
+
+    if pry:
+        #print(pry[0][0], PASSWORD, pry[0][1])
+        if pry[0][0] == PASSWORD:
+            mainPage(pry)
+
+        elif PASSWORD != pry[0][0]:
+            popMsg("Invlaid Password")
+  
+        else:
+            print('Error')
+    else:
+        popMsg("Invlaid Username")
+
+def registrationFunction(username, password, pno,loginPage):
+    USERNAME = username.get()
+    PASSWORD = password.get()
+    PNO = pno.get()
+
+    con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
+    cur = con.cursor()
+
+    pqry = f"select PWD from user where uid = '{USERNAME}';"
+    cur.execute(pqry)
+    pry = cur.fetchall()
+
+    if pry :
+        if PASSWORD == pry[0][0]:
+            popMsg("Account already exists")
+        else:
+            popMsg("Username already exists")
+    
+    else:
+        
+        q = f'insert into user (uid, pwd, pno) values("{USERNAME}","{PASSWORD}", "{PNO}");'
         cur.execute(q)
-        s = cur.fetchall()
-        msg = Text(rootc,borderwidth=5,width = 55,height =  3)
-        all_files = ""
-        for x in s:
-            for y in x:
-                all_files += str(y)
-                all_files += (15-len(str(y)))*" "
-            all_files+= "\n"
-        msg.insert(END,all_files)
-        Pickup = Button(rootc,width=55,text='Pickup',command=lambda: collect(RC,1))
-
-        Pickup.grid(row = 0, columnspan=3 )
-        msg.grid(row = 1,rowspan= 10, columnspan=3)
-
-
-    def collect(RC, OC = 0):
-        global rootd
-        if RC:
-            root.destroy()
-            RC = 0
-        if OC:
-            rootc.destroy()
-        rootd = Tk()
-        rootd.option_add("*Button.Background", TC)
-        rootd.configure(bg = BG)
-        rootd.title(MAIN_TITLE)
-        time = Entry(rootd,borderwidth=5)
-        time.insert(0,'Time as HH:MM')
-        loc = Entry(rootd,borderwidth=5)
-        loc.insert(0,'Location to deliver')
+        con.commit()
+        loginPage()
         
-        def submit():
-            con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
-            cur = con.cursor()
-            LOC = loc.get()
-            TIME = time.get()
-            q = f'insert into  jobs(rno, loca, time) values("{USERNAME}","{LOC}", "{TIME}");'
-            cur.execute(q)
-            con.commit()
-            message.delete('1.0',END)
-            message.insert(END, "Data Added Successfully")
-            
-          
-        Submit = Button(rootd,width=55,text='Submit',command=submit)
-        Deliver = Button(rootd,width=55,text='Delivery',command=lambda: deliver(RC,1))
+def rpage(pry,ude):
+    clearPageu()
 
-        message = Text(rootd,borderwidth=5,width = 55,height =  3)
-        message.insert(END,'''Waiting for input''')
-
-        loc.grid(row=0,column=0)
-        time.grid(row=0,column=1)
-        Submit.grid(row=1,column=0,columnspan=2)
-        Deliver.grid(row=2,column=0,columnspan=2)
-        message.grid(row=3,column=0,columnspan=2)
-
-    Deliver = Button(root,width=55,text='Delivery',command=lambda: deliver(RC))
-    Pickup = Button(root,width=55,text='Pickup',command=lambda: collect(RC))
-
-    Deliver.grid(row=2,column=0,columnspan=2, padx= 10, pady=100)
-    Pickup.grid(row=1,column = 0,columnspan=2,padx= 10, pady=10)
+    rid = pry[0]
+    rname = pry[1]
+    price = pry[2]
+    fare = pry[3]
+    type = pry[4]
+    ratingo = pry[5]
+    starttime = pry[6]
+    rpno = pry[7]
+    attribute = pry[8]
     
+    backButton = CTkButton(master=app, text="Go Back", width = 30, command =lambda: mainPage(ude) )
+    backButton.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
-def reg_page():
-    global USERNAME
-    root = Tk()
-    root.title(MAIN_TITLE)
-    root.option_add("*Button.Background", TC)
-    root.configure(bg = BG)
-    root.geometry(DIMENSION)
+def mainLoginPage():
+    clearPage()
+    # Logo
+    app.centrebar_frame = CTkFrame(app, width=140, height= 80,corner_radius=0)
+    app.centrebar_frame.place(relx=0.5, rely=0, anchor=tkinter.CENTER)
+    #app.centrebar_frame.grid_rowconfigure(4, weight=1)
+    app.logo_label = CTkLabel(app.centrebar_frame, text="SocialIte", font=CTkFont(size=20, weight="bold"))
+    app.logo_label.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
 
-    Grid.rowconfigure(root, 0, weight = 1)
-    Grid.rowconfigure(root, 1, weight = 1)
-    Grid.rowconfigure(root, 2, weight = 1)
-    Grid.rowconfigure(root, 3, weight = 1)
+    # Previous page button
+    registerButton = CTkButton(master=app, text="Register", width = 30, command=registerPage)
+    registerButton.place(relx=0.5, rely=0.465, anchor=tkinter.CENTER)
 
-    Grid.columnconfigure(root, 0, weight = 1)
-    Grid.columnconfigure(root, 1, weight = 1)
-    Grid.rowconfigure(root, 2, weight = 1)
-    Grid.rowconfigure(root, 3, weight = 1)
+    # Proceed button
+    LoginButton = CTkButton(master=app, text="Login",width = 30, command=loginPage)
+    LoginButton.place(relx=0.5, rely=0.535, anchor=tkinter.CENTER)
 
+def loginPage():
+    #clear page
+    clearPage()
 
-    username = Entry(root,borderwidth=5)
-    username.insert(0,'Registration Number')
-    mailid = Entry(root,borderwidth=5)
-    mailid.insert(0,'Mail ID')
-    password = Entry(root,borderwidth=5)
-    password.insert(0,'Password')
-    message = Text(root,borderwidth=5,width = 55,height =  3)
-    message.insert(END,'''Enter UserName and Passwd.
-    Register if first time user 
-    Login for preexisting account''')
+    #username txtbox
+    username = CTkEntry(app, placeholder_text="Username")
+    username.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+    #app.entry.grid(row=1, column=2, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
+    #pswrd txtbox
+    pwd = CTkEntry(app, placeholder_text="Password")
+    pwd.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+    #app.entry.grid(row=2, column=2, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
+
+    # Previous page button
+    GoBackToChoicebutton = CTkButton(master=app, text="Go Back", width = 30, command=mainLoginPage)
+    GoBackToChoicebutton.place(relx=0.5, rely=0.625, anchor=tkinter.CENTER)
+
+    # Proceed button
+    Proceedbutton = CTkButton(master=app, text="Login",width = 30, command=lambda: loginFunction(username, pwd, mainPage))
+    Proceedbutton.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
+
+    # Logo
+    """
+    app.sidebar_frame = CTkFrame(app, width=140, corner_radius=0)
+    app.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
+    """
+
+    app.centrebar_frame = CTkFrame(app, width=140, height= 80,corner_radius=0)
+    app.centrebar_frame.place(relx=0.5, rely=0, anchor=tkinter.CENTER)
     
-    def clearing():
-        username.delete(0,END)
-        password.delete(0,END)
-        mailid.delete(0,END)
-        
-    def gate():
-        USERNAME = username.get()
-        PASSWORD = password.get()
+    #app.centrebar_frame.grid_rowconfigure(4, weight=1)
+    app.logo_label = CTkLabel(app.centrebar_frame, text="SocialIte", font=CTkFont(size=20, weight="bold"))
+    app.logo_label.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
 
-        con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD, database = DATABASE)
-        cur = con.cursor()
+def registerPage():
+    
+    clearPage()
 
-        pqry = f"select pwd,uid,pts from user where uid = '{USERNAME}';"
-        cur.execute(pqry)
-        pry = cur.fetchall()
+    #username txtbox
+    username = CTkEntry(app, placeholder_text="Enter Username")
+    username.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+    #app.entry.grid(row=1, column=2, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
-        if pry:
-            #print(pry[0][0], PASSWORD, pry[0][1])
-            if pry[0][0] == PASSWORD:
-                root.destroy()
-                home_page(USERNAME)
+    #pswrd txtbox
+    pwd = CTkEntry(app, placeholder_text="Enter Password")
+    pwd.place(relx=0.5, rely=0.43, anchor=tkinter.CENTER)
+    #app.config(show="*")
+    #app.entry.grid(row=2, column=2, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
-            elif PASSWORD != pry[0][0]:
-                message.delete('1.0',END)
-                message.insert(END,'Incorrect Password')
-            else:
-                message.delete('1.0',END)
-                message.insert(END,'Error')
-        else:
-            message.delete('1.0',END)
-            message.insert(END,'Invalid Username. Try again or Register')
+    #phno txtbox
+    pno = CTkEntry(app, placeholder_text="Enter Phone Number")
+    pno.place(relx=0.5, rely=0.51, anchor=tkinter.CENTER)
 
-    def registeration():
-        
-        USERNAME = username.get()
-        PASSWORD = password.get()
-        MAILID = mailid.get()
+    # Previous page button
+    GoBackToChoicebutton = CTkButton(master=app, text="Go Back", width = 30, command=mainLoginPage)
+    GoBackToChoicebutton.place(relx=0.5, rely=0.72, anchor=tkinter.CENTER)
 
-        con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD , database = DATABASE)
-        cur = con.cursor()
+    # CreateAccount button
+    CreateAccountbutton = CTkButton(master=app, text="Create Account",width = 30, command=lambda: registrationFunction(username, pwd, pno, loginPage) )
+    CreateAccountbutton.place(relx=0.5, rely=0.66, anchor=tkinter.CENTER)
 
-        pqry = f"select PWD from user where rno = '{USERNAME}';"
-        cur.execute(pqry)
-        pry = cur.fetchall()
+    # Logo
+    app.centrebar_frame = CTkFrame(app, width=140, height= 80,corner_radius=0)
+    app.centrebar_frame.place(relx=0.5, rely=0, anchor=tkinter.CENTER)
+    #app.centrebar_frame.grid_rowconfigure(4, weight=1)
+    app.logo_label = CTkLabel(app.centrebar_frame, text="SocialIte", font=CTkFont(size=20, weight="bold"))
+    app.logo_label.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
 
-        if pry :
-            if PASSWORD == pry[0][0]:
-                gate()
-            else:
-                message.delete('1.0',END)
-                message.insert(END,'Username already exists')
-        
-        else:
-            PNO = 1
-            q = f'insert into user (uid, pwd, pno) values("{USERNAME}","{PASSWORD}", "{MAILID}", "{PNO}");'
-            cur.execute(q)
-            con.commit()
-            message.delete('1.0',END)
-            message.insert(END,'Successfully Registered ! Click Login')
-        
-    login = Button(root,width=55,text='Login',command=gate)
-    clear = Button(root,width=55,text='Clear',command=clearing)
-    register = Button(root, width = 55, text = 'Register', command = registeration)
+def mainPage(ude):
+    clearPageu()
+    #logo
+    
+    uid = ude[1][0]
+    pts = ude[2][0]
 
-    username.grid(row=0,column=0,sticky="nsew")
-    password.grid(row=0,column=1,sticky="nsew")
-    mailid.grid(row=0, column=2 ,sticky="nsew")
-    login.grid(row=3,column=0,columnspan=3)
-    clear.grid(row=4,column=0,columnspan=3)
-    register.grid(row=2,column=0,columnspan=3)
-    message.grid(row=1,column = 0,columnspan=3,sticky="nsew")
-        
-    root.mainloop()
+    con = sql.connect(host = 'localhost', user = 'root', password = SQLPASSWORD, database = DATABASE)
+    cur = con.cursor()
 
-reg_page()
+    pqry2 = f"select rid,rname,price,fare,type,ratingo,starttime, rpno,attribute from rdetails;"
+    cur.execute(pqry2)
+    pry2 = cur.fetchall()
 
-main()
+    pqry = f'select distinct rid,rname,price,fare,type,ratingo,starttime, rpno,attribute from rdetails order by ratingo desc'
+    cur.execute(pqry)
+    pry = cur.fetchall()
+    
+    rid = pry[0]
+    rname = pry[1]
+    price = pry[2]
+    fare = pry[3]
+    type = pry[4]
+    ratingo = pry[5]
+    starttime = pry[6]
+    rpno = pry[7]
+    attribute = pry[8]
+
+    app.sidebar_frame = CTkFrame(app, width=90, corner_radius=3)
+    app.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
+    app.sidebar_frame.grid_rowconfigure(4, weight=1)
+    app.logo_label = CTkLabel(app.sidebar_frame, text="SocialIte", font=CTkFont(size=20, weight="bold"))
+    app.logo_label.grid(row=0, column=0, padx=10, pady=(20, 10))
+
+    #searchbar
+    searchbar = CTkEntry(app, width = 50,placeholder_text="Mood kya hai?")
+    searchbar.grid(row= 0, column=1, padx=(10, 0), pady=(30, 0), sticky="nsew")
+    #app.entry.place(relx=0.5, rely=0.02)
+
+    #searchbutton
+    searchButton = CTkButton(master=app, text="🔍", width = 10, command=mainLoginPage)
+    #searchButton.grid(row=0, column=2, padx=(0, 0), pady=(30, 0), sticky="nsew")
+    searchButton.place(x=290, y=44, anchor=tkinter.CENTER)
+
+    #tabview code
+    app.tabview = CTkTabview(app, width=250, height=100)
+    app.tabview.grid(row=1, column=1, padx=(20, 0), pady=(30, 0), columnspan = 3 , sticky="nsew")
+    app.tabview.add("Outing Duration")
+    app.tabview.add("Budget per person")
+    app.tabview.add("Other Filters")
+    app.tabview.tab("Outing Duration").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
+    app.tabview.tab("Budget per person").grid_columnconfigure(0, weight=1)
+    app.tabview.tab("Other Filters").grid_columnconfigure(0, weight=1)
+
+
+    #OutingDurationfilter
+    app.optionmenu_1 = CTkOptionMenu(app.tabview.tab("Outing Duration"), dynamic_resizing=False,values=["0-1 hours", "1-2 hours", "2-3 hours"])
+    app.optionmenu_1.grid(row=0, column=0, padx=20, pady=(20, 10))
+
+    #Budgetfilter
+    app.optionmenu_2 = CTkOptionMenu(app.tabview.tab("Budget per person"), dynamic_resizing=False,values=["250", "350", "500", "700"])
+    app.optionmenu_2.grid(row=0, column=0, padx=30, pady=(20, 10))
+    
+    #Otherfilter
+    app.scrollable_frame = CTkScrollableFrame(app, label_text="Our Reccomendations")
+    app.scrollable_frame.grid(row=3, column=1, padx=(20, 11), pady=(20, 0), columnspan = 2, sticky="nsew")
+    app.scrollable_frame.grid_columnconfigure(0, weight=1)
+    app.scrollable_frame_switches = []
+    att=["chill","laid back","live music","dance","ambience","good food","aeshetic","fast food","aeshetic","fast food","North Indian","just coffee","happy","serene","shopping","creative"]
+    for i in range(0,14):
+        switch = CTkSwitch(master=app.scrollable_frame, text=f"{i}")
+        switch.grid(row=i, column=0, padx=10, pady=(0, 20))
+        app.scrollable_frame_switches.append(switch)
+
+    #Reccomendations window
+    app.scrollable_frame = CTkScrollableFrame(app, label_text="Our Reccomendations")
+    app.scrollable_frame.grid(row=3, column=1, padx=(20, 11), pady=(20, 0), columnspan = 2, sticky="nsew")
+    app.scrollable_frame.grid_columnconfigure(0, weight=1)
+    app.scrollable_frame_switches = []
+    for i in range(5):
+        switch = CTkButton(master=app.scrollable_frame, text=f"Reccomendation {pry[i][1]}", command= lambda: rpage(pry[i],ude))
+        switch.grid(row=i, column=0, padx=10, pady=(0, 20))
+        app.scrollable_frame_switches.append(switch)
+
+    #Randomized Reccomendation
+    global rand_i
+    app.textbox = CTkTextbox(app, width=210,height=10)
+    app.textbox.place(x=250,y=500, anchor=tkinter.CENTER)
+    app.textbox.insert("1.0", "Reccomendation no "+str(round(100*random())))
+
+
+mainPage([[1],["Karan"],[40]])
+app.mainloop()
+
+
+#print(app.username.get())
